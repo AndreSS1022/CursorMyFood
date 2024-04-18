@@ -1,0 +1,27 @@
+delimiter //
+CREATE PROCEDURE obtenerDetallesFacturas()
+BEGIN
+    DECLARE fin_cursor BOOLEAN DEFAULT FALSE;
+    DECLARE v_detalles VARCHAR(200);
+
+    DECLARE cur_facturas CURSOR FOR
+        SELECT CONCAT('Factura #', f.numeroFactura, ': ', p.nombreProducto, ' vendido por ', 
+        CONCAT(v.nombre, ' ', v.apellido), ' a ',
+        CONCAT(c.nombre, ' ', c.apellido)) AS detalles
+        FROM factura f
+        JOIN clientes c ON f.idCliente = c.cedula
+        JOIN usuarios v ON f.idVendedor = v.idUsuarios
+        JOIN productos p ON f.idProducto = p.idProducto;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = TRUE;
+    
+    OPEN cur_facturas;
+    bucle: LOOP
+        FETCH cur_facturas INTO v_detalles;
+        IF fin_cursor THEN
+            LEAVE bucle;
+        END IF;
+        SELECT v_detalles AS 'Detalles de Factura';
+    END LOOP bucle;
+    CLOSE cur_facturas;
+END;
